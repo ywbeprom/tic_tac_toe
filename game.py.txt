@@ -1,0 +1,124 @@
+human = input('Выберите свой символ (X или O): ').upper()
+
+while human not in ('X', 'O'):
+    human = input('Некорректно. Выберите X или O: ').upper()
+
+if human == 'X':
+    computer = 'O'
+else:
+    computer = 'X'
+
+# всегда начинают крестики, но если человек выбрал O, то первый ход за компьютером
+current_player = 'X'
+
+rows, cols = 3, 3
+matrix = [[1, 2, 3],
+          [4, 5, 6],
+          [7, 8, 9]]
+
+def find_winning_move(symbol):
+    for r in range(3):
+        for c in range(3):
+            if matrix[r][c] not in ('X', 'O'):
+                old_value = matrix[r][c]
+                matrix[r][c] = symbol
+                winner = check_winner()
+                matrix[r][c] = old_value
+                if winner == symbol:
+                    return r * 3 + c + 1
+    return None
+
+def is_full():
+    for r in range(rows):
+        for c in range(cols):
+            if matrix[r][c] not in ('X', 'O'):
+                return False
+    return True
+
+def print_table():
+    for r in range(rows):
+        for c in range(cols):
+            print(matrix[r][c], end=' ')
+        print()
+    print()
+
+def check_winner():
+    for r in range(rows):
+        if matrix[r][0] == matrix[r][1] == matrix[r][2]:
+            return matrix[r][0]
+    for c in range(cols):
+        if matrix[0][c] == matrix[1][c] == matrix[2][c]:
+            return matrix[0][c]
+    if matrix[0][0] == matrix[1][1] == matrix[2][2]:
+        return matrix[0][0]
+    if matrix[0][2] == matrix[1][1] == matrix[2][0]:
+        return matrix[0][2]
+    return None
+
+def computer_move():
+    # логика победы
+    win = find_winning_move(computer)
+    if win is not None:
+        return win
+    # логика блока
+    block = find_winning_move(human)
+    if block is not None:
+        return block
+    # центр
+    if matrix[1][1] not in ('X', 'O'):
+        return 5
+    # углы
+    corners = [(0,0), (0,2), (2,0), (2,2)]
+    for r, c in corners:
+        if matrix[r][c] not in ('X', 'O'):
+            return r * 3 + c + 1
+    # боковые клетки
+    sides = [(0,1), (1,0), (1,2), (2,1)]
+    for r, c in sides:
+        if matrix[r][c] not in ('X', 'O'):
+            return r * 3 + c + 1
+    return None
+
+while True:
+    print_table()
+
+    if current_player == human:
+        while True:
+            try:
+                cell = int(input('Твой выбор: '))
+            except ValueError:
+                print('Введите число!')
+                continue
+            if cell < 1 or cell > 9:
+                print('Число должно быть от 1 до 9!')
+                continue
+            row = (cell - 1) // 3
+            col = (cell - 1) % 3
+            if matrix[row][col] in ('X', 'O'):
+                print('Эта клетка уже занята! Выбери другую.')
+                continue
+            break
+        matrix[row][col] = current_player
+    else:
+        cell = computer_move()
+        if cell is None:
+            # нет свободных ходов – ничья
+            break
+        row = (cell - 1) // 3
+        col = (cell - 1) % 3
+        matrix[row][col] = current_player
+        print(f'Компьютер выбрал клетку {cell}')
+
+    winner = check_winner()
+    if winner:
+        print_table()
+        print(f'Игрок {winner} победил!')
+        break
+
+    if is_full():
+        print_table()
+        print('Ничья!')
+        break
+
+    # смена игрока
+    current_player = 'O' if current_player == 'X' else 'X'
